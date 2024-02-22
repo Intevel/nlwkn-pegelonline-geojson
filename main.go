@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 type NlwknResponse struct {
@@ -61,6 +62,10 @@ var lastTimeFetched time.Time
 func main() {
 	app := fiber.New()
 	fetchNlwknData()
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+	}))
 
 	app.Get("/pegelstaende.geojson", func(c *fiber.Ctx) error {
 		// fetch new data every 5 minutes
