@@ -16,28 +16,28 @@ type NlwknResponse struct {
 }
 
 type Station struct {
-	Name        string       `json:"name"`
-	Betreiber   string       `json:"betreiber"`
-	Longitude   string       `json:"Longitude"`
-	Latitude    string       `json:"Latitude"`
-	Parameter   []DataParams `json:"Parameter"`
-	IstSpeicher bool         `json:"IstSpeicher"` // talsperre, rückhaltebecken
+	Name      string       `json:"name"`
+	Operator  string       `json:"betreiber"`
+	Longitude string       `json:"Longitude"`
+	Latitude  string       `json:"Latitude"`
+	Parameter []DataParams `json:"Parameter"`
+	Storage   bool         `json:"IstSpeicher"` // talsperre, rückhaltebecken
 }
 
 type DataParams struct {
-	Datenspuren []Datenspur `json:"datenspuren"`
-	Name        string      `json:"name"`
-	Einheit     string      `json:"einheit"`
+	Traces []Trace `json:"datenspuren"`
+	Name   string  `json:"name"`
+	Unit   string  `json:"einheit"`
 }
 
-type Datenspur struct {
-	AktuelleMeldeStufe          float64 `json:"AktuelleMeldeStufe"`
-	AktuellerMesswert           float64 `json:"AktuellerMesswert"`
-	AktuellerMesswert_Text      string  `json:"AktuellerMesswert_Text"`
-	AktuellerMesswert_Zeitpunkt string  `json:"AktuellerMesswert_Zeitpunkt"`
-	Farbe                       string  `json:"Farbe"`
-	ParameterName               string  `json:"ParameterName"`
-	ParameterEinheit            string  `json:"ParameterEinheit"`
+type Trace struct {
+	AlertLevel    float64 `json:"AktuelleMeldeStufe"`
+	Level         float64 `json:"AktuellerMesswert"`
+	Text          string  `json:"AktuellerMesswert_Text"`
+	Timestamp     string  `json:"AktuellerMesswert_Zeitpunkt"`
+	Color         string  `json:"Farbe"`
+	ParameterName string  `json:"ParameterName"`
+	ParameterUnit string  `json:"ParameterEinheit"`
 }
 
 type GeoJSONFeatureCollection struct {
@@ -115,17 +115,17 @@ func ResponseToGeoJson(response NlwknResponse) GeoJSONFeatureCollection {
 		latitude, _ := strconv.ParseFloat(station.Latitude, 64)
 
 		// check if station has pegelstand
-		var Einheit string
-		var AktuellerMesswert string
-		var Farbe string
+		var unit string
+		var measurement string
+		var color string
 
-		if len(station.Parameter) == 0 || len(station.Parameter[0].Datenspuren) == 0 {
-			AktuellerMesswert = "-"
-			Einheit = "-"
+		if len(station.Parameter) == 0 || len(station.Parameter[0].Traces) == 0 {
+			measurement = "-"
+			unit = "-"
 		} else {
-			AktuellerMesswert = station.Parameter[0].Datenspuren[0].AktuellerMesswert_Text
-			Farbe = station.Parameter[0].Datenspuren[0].Farbe
-			Einheit = station.Parameter[0].Datenspuren[0].ParameterEinheit
+			measurement = station.Parameter[0].Traces[0].Text
+			color = station.Parameter[0].Traces[0].Color
+			unit = station.Parameter[0].Traces[0].ParameterUnit
 		}
 
 		feature := GeoJSONFeature{
@@ -136,11 +136,11 @@ func ResponseToGeoJson(response NlwknResponse) GeoJSONFeatureCollection {
 			},
 			Properties: map[string]interface{}{
 				"name":              station.Name,
-				"betreiber":         station.Betreiber,
-				"marker-color":      Farbe,
-				"AktuellerMesswert": AktuellerMesswert,
-				"Einheit":           Einheit,
-				"IstSpeicher":       station.IstSpeicher,
+				"betreiber":         station.Operator,
+				"marker-color":      color,
+				"AktuellerMesswert": measurement,
+				"Einheit":           unit,
+				"IstSpeicher":       station.Storage,
 			},
 		}
 
